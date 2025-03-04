@@ -1,0 +1,22 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pulsar-pubsub
+spec:
+  type: pubsub.pulsar
+  version: v1
+  metadata:
+  - name: host
+    value: "pulsar://localhost:6650"
+  - name: enableTLS
+    value: "false"
+  - name: tenant
+    value: "public"
+  - name: namespace
+    value: "default"
+  # Critical for trace propagation
+  - name: propagateTraceEnabled
+    value: "true"
+  # Enable cloud event envelope
+  - name: publishCloudEventEnvelope
+    value: "true"

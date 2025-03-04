@@ -1,0 +1,17 @@
+version: '3'
+services:
+  # Apache Pulsar
+  pulsar:
+    image: apachepulsar/pulsar:2.10.1
+    ports:
+      - "6650:6650"  # Broker port
+      - "8080:8080"  # Web service port
+    environment:
+      - PULSAR_MEM=-Xms512m -Xmx512m -XX:MaxDirectMemorySize=256m
+    command: >
+      /bin/bash -c "bin/pulsar standalone"
+    healthcheck:
+      test: ["CMD", "bin/pulsar-admin", "brokers", "healthcheck"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
