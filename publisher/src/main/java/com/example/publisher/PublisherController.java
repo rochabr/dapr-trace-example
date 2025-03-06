@@ -7,10 +7,14 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.example.publisher.otel.OpenTelemetryConfig.getReactorContext;
 
 import io.dapr.client.DaprClient;
 import io.dapr.client.DaprClientBuilder;
+import io.opentelemetry.context.Context;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -27,7 +31,7 @@ public class PublisherController {
     }
 
     @GetMapping("/publish")
-    public Mono<String> publishEvent() {
+    public Mono<String> publishEvent(@RequestAttribute(name = "opentelemetry-context") Context context ) {
         logger.info("Publishing an order event");
         
         // Create order data
@@ -41,9 +45,11 @@ public class PublisherController {
         // Create metadata to override CloudEvent properties
         Map<String, String> metadata = new HashMap<>();
         metadata.put("cloudevent.traceid", "custom-trace-id");
-        metadata.put("cloudevent.source", "order-service");
-        metadata.put("cloudevent.type", "com.example.order");
-        metadata.put("cloudevent.id", UUID.randomUUID().toString());
+        metadata.put("cloudevent.tracestate", "custom-trace-state");
+        metadata.put("cloudevent.parent", "custom-trace-parent");
+        // metadata.put("cloudevent.source", "order-service");
+        // metadata.put("cloudevent.type", "com.example.order");
+        // metadata.put("cloudevent.id", UUID.randomUUID().toString());
 
         // Publish with metadata
         return daprClient.publishEvent(
@@ -51,7 +57,7 @@ public class PublisherController {
                 TOPIC_NAME,
                 order,
                 metadata
-        ).then(Mono.fromCallable(() -> {
+        ).contextWrite(getReactorContext(context)).then(Mono.fromCallable(() -> {
             String response = "Published order with ID: " + orderId;
             logger.info(response);
             return response;
