@@ -44,8 +44,9 @@ In a new terminal:
 
 ```bash
 cd publisher
+mvn clean package
 dapr run --app-id publisher \
-         --app-port 8080 \
+         --app-port 8082 \
          --resources-path ../components \
          --config ../config.yaml \
          -- java -jar target/publisher-0.0.1-SNAPSHOT.jar
