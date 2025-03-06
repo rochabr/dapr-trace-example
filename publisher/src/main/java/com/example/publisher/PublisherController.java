@@ -1,16 +1,16 @@
 package com.example.publisher;
 
-import io.dapr.client.DaprClient;
-import io.dapr.client.DaprClientBuilder;
-import io.dapr.client.domain.CloudEvent;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.dapr.client.DaprClient;
+import io.dapr.client.DaprClientBuilder;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -40,7 +40,8 @@ public class PublisherController {
 
         // Create metadata to override CloudEvent properties
         Map<String, String> metadata = new HashMap<>();
-        metadata.put("cloudevent.traceparent", "00-" + traceId + "-" + spanId + "-01");        metadata.put("cloudevent.source", "order-service");
+        metadata.put("cloudevent.traceid", "custom-trace-id");
+        metadata.put("cloudevent.source", "order-service");
         metadata.put("cloudevent.type", "com.example.order");
         metadata.put("cloudevent.id", UUID.randomUUID().toString());
 
