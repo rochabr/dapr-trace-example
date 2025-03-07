@@ -18,26 +18,38 @@ public class SubscriberController {
 
     private static final Logger logger = LoggerFactory.getLogger(SubscriberController.class);
 
+
     @Topic(name = "orders", pubsubName = "pulsar-pubsub")
     @PostMapping(path = "/orders", consumes = "application/cloudevents+json")
     public Mono<Void> receiveOrder(
             @RequestBody(required = false) CloudEvent<Map<String, Object>> cloudEvent,
             @RequestHeader Map<String, String> headers) {
         
-        // Log headers to see trace context
-        if (headers.containsKey("traceparent")) {
-            logger.info("Received traceparent header: {}", headers.get("traceparent"));
-        } else {
-            logger.warn("No traceparent header received");
-        }
-
+        // Extract trace context from headers
+        String traceparent = headers.getOrDefault("traceparent", null);
+        
         try {
+            if (traceparent != null) {
+                logger.info("Received traceparent: {}", traceparent);
+                
+                // Parse the traceparent (format: 00-traceId-spanId-flags)
+                String[] parts = traceparent.split("-");
+                if (parts.length >= 4) {
+                    String traceId = parts[1];
+                    String parentSpanId = parts[2];
+                    
+                    // Log the extraction
+                    logger.info("Extracted trace ID: {}, parent span ID: {}", traceId, parentSpanId);
+                    
+                }
+            }
+            
             // Process the order
             if (cloudEvent != null && cloudEvent.getData() != null) {
                 Map<String, Object> order = cloudEvent.getData();
                 String orderId = order.get("orderId") != null ? order.get("orderId").toString() : "unknown";
                 
-                logger.info("Processing order: ID={}, Data={}", orderId, order);
+                logger.info("Processing order: ID={}", orderId);
                 
                 // Simulate processing time
                 Thread.sleep(100);
@@ -51,6 +63,6 @@ public class SubscriberController {
         } catch (Exception e) {
             logger.error("Error processing order", e);
             return Mono.error(e);
-        }
+        } 
     }
 }
